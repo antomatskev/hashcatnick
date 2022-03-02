@@ -15,14 +15,11 @@ public class PostParser implements Parser {
     public String composeResponse(final String req) throws IOException {
         final String ret;
         switch (this.uri.getPath()) {
-            case "/json-to-xml":
+            case "/nodes":
                 ret = req;
                 break;
-            case "/json-to-soap":
-                ret = req + "\n======\nPretty SOAPy story!";
-                break;
             default:
-                ret = req + " \n=====\nThat's it, folks!";
+                ret = "=====\nUnknown request!\n====\n" + req;
                 break;
         }
         return ret;

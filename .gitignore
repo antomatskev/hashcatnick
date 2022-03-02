@@ -26,3 +26,6 @@ hs_err_pid*
 /out/
 /.idea/
 /target/
+
+# This is modifiable file for local usage.
+nodes.json

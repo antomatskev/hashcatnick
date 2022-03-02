@@ -1,5 +1,7 @@
 package server.parse;
 
+import util.NodesFile;
+
 import java.net.URI;
 
 public class GetParser implements Parser {
@@ -11,8 +13,17 @@ public class GetParser implements Parser {
     }
 
     @Override
-    public String composeResponse(final String input) {
-        return this.uri.getPath();
+    public String composeResponse(final String req) {
+        final String ret;
+        switch (this.uri.getPath()) {
+            case "/nodes":
+                ret = new NodesFile().nodesJsonString();
+                break;
+            default:
+                ret = "=====\nUnknown request!\n====\n" + req;
+                break;
+        }
+        return ret;
     }
 
 }

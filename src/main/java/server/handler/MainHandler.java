@@ -1,4 +1,4 @@
-package server;
+package server.handler;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -8,9 +8,8 @@ import server.route.Route;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
 
-class TestHandler implements HttpHandler {
+public class MainHandler implements HttpHandler {
 
     @Override
     public void handle(final HttpExchange exchange) throws IOException {
@@ -23,12 +22,12 @@ class TestHandler implements HttpHandler {
     }
 
     private void doGet(final HttpExchange exchange) throws IOException {
-        final String response = exchange.getRequestURI().toString();
-        exchange.getResponseHeaders().put("Content-Type", Collections.singletonList("text/plain"));
-        exchange.sendResponseHeaders(200, response.getBytes().length);
-        final OutputStream os = exchange.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
+//        final String response = exchange.getRequestURI().toString();
+//        exchange.getResponseHeaders().put("Content-Type", Collections.singletonList("text/plain"));
+//        exchange.sendResponseHeaders(200, response.getBytes().length);
+//        final OutputStream os = exchange.getResponseBody();
+//        os.write(response.getBytes());
+//        os.close();
         new Route(new GetParser(exchange.getRequestURI())).routeResponse(exchange);
     }
 
@@ -37,11 +36,10 @@ class TestHandler implements HttpHandler {
     }
 
     private void doDefault(final HttpExchange exchange) throws IOException {
-        final String response = "Das ist kleine test!";
-        exchange.sendResponseHeaders(200, response.getBytes().length);
+        final String response = "Incorrect HTTP method used!";
+        exchange.sendResponseHeaders(404, response.getBytes().length);
         final OutputStream os = exchange.getResponseBody();
         os.write(response.getBytes());
         os.close();
     }
-
 }

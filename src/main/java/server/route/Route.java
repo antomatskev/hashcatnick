@@ -5,7 +5,7 @@ import server.parse.Parser;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
+import java.nio.charset.Charset;
 
 public class Route {
 
@@ -16,11 +16,11 @@ public class Route {
     }
 
     public void routeResponse(HttpExchange exchange) throws IOException {
-        final String response = this.parser.composeResponse(new String(exchange.getRequestBody().readAllBytes()));
-        exchange.getResponseHeaders().put("Content-Type", Collections.singletonList("text/plain"));
-        exchange.sendResponseHeaders(200, response.getBytes().length);
-        final OutputStream os = exchange.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
+        exchange.getResponseHeaders().add("Content-Type", "application/json");
+        final String response = this.parser.composeResponse(exchange.getRequestURI().toString());
+        exchange.sendResponseHeaders(200, response.length());
+        try (OutputStream responseStream = exchange.getResponseBody()) {
+            responseStream.write(response.getBytes(Charset.defaultCharset()));
+        }
     }
 }

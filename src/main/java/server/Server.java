@@ -1,6 +1,7 @@
 package server;
 
 import com.sun.net.httpserver.HttpServer;
+import server.handler.MainHandler;
 import util.NodesFile;
 
 import java.io.IOException;
@@ -16,7 +17,7 @@ public class Server {
         final HttpServer server = isMainNode
                 ? startMainNodeServer(nodeFile)
                 : startNodeServer(nodeFile);
-        server.createContext("/", new TestHandler());
+        server.createContext("/", new MainHandler());
         server.setExecutor(null);
         final String startMsg = "===STARTING NODE: "
                 + (isMainNode
