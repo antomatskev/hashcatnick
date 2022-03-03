@@ -22,12 +22,6 @@ public class MainHandler implements HttpHandler {
     }
 
     private void doGet(final HttpExchange exchange) throws IOException {
-//        final String response = exchange.getRequestURI().toString();
-//        exchange.getResponseHeaders().put("Content-Type", Collections.singletonList("text/plain"));
-//        exchange.sendResponseHeaders(200, response.getBytes().length);
-//        final OutputStream os = exchange.getResponseBody();
-//        os.write(response.getBytes());
-//        os.close();
         new Route(new GetParser(exchange.getRequestURI())).routeResponse(exchange);
     }
 

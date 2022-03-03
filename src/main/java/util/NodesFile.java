@@ -20,4 +20,8 @@ public class NodesFile {
         return new JsonFileContent(NODES_JSON).readStringified();
     }
 
+    public void updateAddress(final String ip, final int port) {
+        new JsonFileContent(NODES_JSON).write(ip, port);
+    }
+
 }

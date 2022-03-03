@@ -1,5 +1,6 @@
 package server;
 
+import client.Client;
 import com.sun.net.httpserver.HttpServer;
 import server.handler.MainHandler;
 import util.NodesFile;
@@ -10,6 +11,12 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 public class Server {
+
+    private final Client client;
+
+    public Server(Client client) {
+        this.client = client;
+    }
 
     public void start(final boolean isMainNode) throws IOException {
         System.out.println("===SERVER STARTED===");
@@ -47,11 +54,14 @@ public class Server {
             ip = "";
             port = 0;
         }
-        // TODO: write own IP and port to nodes.json and send them to the main node.
-//        return HttpServer.create(
-//                new InetSocketAddress(nodeFile.writeNodeIp(ip), nodeFile.writeNodePort(port)), 0);
+        writeAndSendOwnAddress(ip, port);
         return HttpServer.create(
                 new InetSocketAddress(ip, port), 0);
+    }
+
+    private void writeAndSendOwnAddress(final String ip, final int port) {
+        new NodesFile().updateAddress(ip, port);
+        client.sendAddressUpdate();
     }
 
 }

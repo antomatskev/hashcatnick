@@ -12,12 +12,7 @@ public class Hashcatnick {
         System.out.println("===STARTING HYDRATOR===");
         try {
             final boolean isMainNode = args.length != 0 && Objects.equals(args[0], "main");
-            if (isMainNode) {
-                new Server().start(isMainNode);
-                new Client().start(isMainNode);
-            } else {
-                new Client().start(isMainNode);
-            }
+            new Client().start(isMainNode);
             System.exit(0);
         } catch (IOException e) {
             e.printStackTrace();

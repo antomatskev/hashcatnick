@@ -1,13 +1,15 @@
 package util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import json.Node;
 
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 public class JsonFileContent {
 
@@ -26,13 +28,34 @@ public class JsonFileContent {
         return new HashMap<>();
     }
 
+    protected void write(final String ip, final int port) {
+        final String content = updatedContent(ip, port);
+        try (FileWriter fw = new FileWriter(fileName)) {
+            fw.write(content);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     protected String readStringified() {
         final StringBuilder ret = new StringBuilder();
-        try (Stream<String> stream = Files.lines(Paths.get(fileName))) {
-            stream.forEach(l -> ret.append(l.trim()));
+        try {
+            ret.append(new ObjectMapper().writeValueAsString(read()));
         } catch (IOException e) {
             e.printStackTrace();
         }
         return ret.toString();
+    }
+
+    private String updatedContent(final String ip, final int port) {
+        final Map<?, ?> currentContent = read();
+        ((List<Node>) currentContent.get("nodes")).add(new Node(ip, port));
+        final StringBuilder sb = new StringBuilder();
+        try {
+            sb.append(new ObjectMapper().writeValueAsString(currentContent));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return sb.toString();
     }
 }
