@@ -1,5 +1,9 @@
 package util;
 
+import json.Node;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class NodesFile {
@@ -22,6 +26,11 @@ public class NodesFile {
 
     public void updateAddress(final String ip, final int port) {
         new JsonFileContent(NODES_JSON).write(ip, port);
+    }
+
+    public int lastUsedPort() {
+        List<Node> nodes = (ArrayList<Node>) new JsonFileContent(NODES_JSON).read().get("nodes");
+        return nodes.isEmpty() ? 9000 : (int) ((Map<?, ?>) nodes.get(nodes.size() - 1)).get("port");
     }
 
 }

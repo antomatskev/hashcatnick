@@ -48,7 +48,7 @@ public class Server {
         try (final DatagramSocket socket = new DatagramSocket()) {
             socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
             ip = socket.getLocalAddress().getHostAddress();
-            port = 9001;
+            port = client.determinePort();
         } catch (Exception e) {
             e.printStackTrace();
             ip = "";

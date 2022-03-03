@@ -28,4 +28,4 @@ hs_err_pid*
 /target/
 
 # This is modifiable file for local usage.
-nodes.json
+./nodes.json

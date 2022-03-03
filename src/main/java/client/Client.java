@@ -12,10 +12,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Client {
 
     private final String mainNode = new NodesFile().mainNodeIp() + ":" + new NodesFile().mainNodePort();
+    private final AtomicInteger port = new AtomicInteger();
 
     public void start(final boolean isMainNode) throws IOException {
         System.out.println("===CLIENT STARTED===");
@@ -89,6 +91,11 @@ public class Client {
         }
         in.close();
         con.disconnect();
+    }
+
+    public int determinePort() {
+        port.set(new NodesFile().lastUsedPort() + 1);
+        return port.get();
     }
 
 }
