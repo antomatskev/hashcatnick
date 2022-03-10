@@ -1,10 +1,6 @@
 import client.Client;
-import server.Server;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class Hashcatnick {
 
