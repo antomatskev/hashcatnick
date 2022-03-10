@@ -1,5 +1,6 @@
 package server.parse;
 
+import com.sun.net.httpserver.HttpExchange;
 import util.NodesFile;
 import util.ProcessFile;
 
@@ -14,7 +15,7 @@ public class GetParser implements Parser {
     }
 
     @Override
-    public String composeResponse(final String req) {
+    public String composeResponse(final HttpExchange req) {
         final String ret;
         switch (this.uri.getPath()) {
             case "/nodes":
@@ -24,7 +25,7 @@ public class GetParser implements Parser {
                 ret = new ProcessFile().procJsonString();
                 break;
             default:
-                ret = "=====\nUnknown request!\n====\n" + req;
+                ret = "=====\nUnknown request!\n====\n" + req.getRequestURI().toString();
                 break;
         }
         return ret;

@@ -17,7 +17,7 @@ public class Route {
 
     public void routeResponse(HttpExchange exchange) throws IOException {
         exchange.getResponseHeaders().add("Content-Type", "application/json");
-        final String response = this.parser.composeResponse(exchange.getRequestURI().toString());
+        final String response = this.parser.composeResponse(exchange);
         exchange.sendResponseHeaders(200, response.length());
         try (OutputStream responseStream = exchange.getResponseBody()) {
             responseStream.write(response.getBytes(Charset.defaultCharset()));

@@ -27,27 +27,39 @@ public class Client {
         if (!isMainNode) {
             composeGetRequest("nodes");
         }
+        mainLoop();
+    }
+
+    private void mainLoop() {
         final Scanner scanner = new Scanner(System.in);
         final AtomicBoolean isExit = new AtomicBoolean();
         do {
-            final String input = scanner.nextLine();
-            switch (input) {
-                case "exit":
-                    System.out.println("====FINISHING CLIENT====");
-                    isExit.set(true);
-                    break;
-                case "nodes":
-                    composeGetRequest("nodes");
-                    break;
-                case "process":
-                    composeGetRequest("process");
-                    break;
-                default:
-                    System.out.println("Unknown command: " + input);
-                    break;
-            }
+            processInput(scanner, isExit);
         } while (!isExit.get());
         scanner.close();
+    }
+
+    private void processInput(Scanner scanner, AtomicBoolean isExit) {
+        final String input = scanner.nextLine();
+        final String firstWord = scanner.nextLine().split(" ")[0];
+        switch (firstWord) {
+            case "exit":
+                System.out.println("====FINISHING CLIENT====");
+                isExit.set(true);
+                break;
+            case "nodes":
+                composeGetRequest("nodes");
+                break;
+            case "process":
+                composeGetRequest("process");
+                break;
+            case "hashcat":
+                composePostRequest("process", input);
+                break;
+            default:
+                System.out.println("Unknown command: " + input);
+                break;
+        }
     }
 
     public void sendAddressUpdate() {
@@ -76,6 +88,25 @@ public class Client {
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("Content-Type", "application/json");
+            continueConnection(con);
+        } catch (ConnectException ce) {
+            System.out.println(ce.getMessage() + ". Enter 'exit' to finish the program.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void composePostRequest(final String endpoint, final String command) {
+        try {
+            final URL url = new URL("http://" + mainNode + "/" + endpoint);
+            final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Content-Type", "application/json");
+            con.setDoOutput(true);
+            try (OutputStream os = con.getOutputStream()) {
+                byte[] input = command.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
             continueConnection(con);
         } catch (ConnectException ce) {
             System.out.println(ce.getMessage() + ". Enter 'exit' to finish the program.");
