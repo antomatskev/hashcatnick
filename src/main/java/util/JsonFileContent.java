@@ -37,6 +37,15 @@ public class JsonFileContent {
         }
     }
 
+    protected void writeMain(final String ip, final int port) {
+        final String content = updatedMainContent(ip, port);
+        try (FileWriter fw = new FileWriter(fileName)) {
+            fw.write(content);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     protected String readStringified() {
         final StringBuilder ret = new StringBuilder();
         try {
@@ -50,6 +59,19 @@ public class JsonFileContent {
     private String updatedContent(final String ip, final int port) {
         final Map<?, ?> currentContent = read();
         ((List<Node>) currentContent.get("nodes")).add(new Node(ip, port));
+        final StringBuilder sb = new StringBuilder();
+        try {
+            sb.append(new ObjectMapper().writeValueAsString(currentContent));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return sb.toString();
+    }
+
+    private String updatedMainContent(final String ip, final int port) {
+        final Map<?, ?> currentContent = read();
+        ((Map<String, String>) currentContent.get("mainNode")).put("ip", ip);
+        ((Map<String, Integer>) currentContent.get("mainNode")).put("port", port);
         final StringBuilder sb = new StringBuilder();
         try {
             sb.append(new ObjectMapper().writeValueAsString(currentContent));

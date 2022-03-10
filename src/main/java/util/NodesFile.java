@@ -33,4 +33,8 @@ public class NodesFile {
         return nodes.isEmpty() ? 9000 : (int) ((Map<?, ?>) nodes.get(nodes.size() - 1)).get("port");
     }
 
+    public void updateMainNode(final String ip, final int port) {
+        new JsonFileContent(NODES_JSON).writeMain(ip, port);
+    }
+
 }

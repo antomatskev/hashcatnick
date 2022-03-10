@@ -19,8 +19,9 @@ public class Client {
     private final String mainNode = new NodesFile().mainNodeIp() + ":" + new NodesFile().mainNodePort();
     private final AtomicInteger port = new AtomicInteger();
 
-    public void start(final boolean isMainNode) throws IOException {
+    public void start(final boolean isMainNode, final int prt) throws IOException {
         System.out.println("===CLIENT STARTED===");
+        port.set(prt);
         new Server(this).start(isMainNode);
         if (!isMainNode) {
             askForKnownNodes();
@@ -94,7 +95,9 @@ public class Client {
     }
 
     public int determinePort() {
-        port.set(new NodesFile().lastUsedPort() + 1);
+        if (port.get() <= 0) {
+            port.set(new NodesFile().lastUsedPort() + 1);
+        }
         return port.get();
     }
 

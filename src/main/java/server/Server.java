@@ -38,8 +38,11 @@ public class Server {
     }
 
     private HttpServer startMainNodeServer(final NodesFile mainNode) throws IOException {
+        final String mainNodeIp = mainNode.mainNodeIp();
+        final int mainNodePort = client.determinePort();
+        mainNode.updateMainNode(mainNodeIp, mainNodePort);
         return HttpServer.create(
-                new InetSocketAddress(mainNode.mainNodeIp(), mainNode.mainNodePort()), 0);
+                new InetSocketAddress(mainNodeIp, mainNodePort), 0);
     }
 
     private HttpServer startNodeServer(final NodesFile nodeFile) throws IOException {
