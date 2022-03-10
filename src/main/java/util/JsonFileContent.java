@@ -13,6 +13,8 @@ import java.util.Map;
 
 public class JsonFileContent {
 
+    private final String NO_DATA = "No data found!";
+
     private final String fileName;
 
     public JsonFileContent(final String name) {
@@ -49,7 +51,8 @@ public class JsonFileContent {
     protected String readStringified() {
         final StringBuilder ret = new StringBuilder();
         try {
-            ret.append(new ObjectMapper().writeValueAsString(read()));
+            Map<?, ?> read = read();
+            ret.append(new ObjectMapper().writeValueAsString(read.isEmpty() ? NO_DATA : read));
         } catch (IOException e) {
             e.printStackTrace();
         }

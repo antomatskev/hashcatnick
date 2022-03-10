@@ -1,6 +1,7 @@
 package server.parse;
 
 import util.NodesFile;
+import util.ProcessFile;
 
 import java.net.URI;
 
@@ -18,6 +19,9 @@ public class GetParser implements Parser {
         switch (this.uri.getPath()) {
             case "/nodes":
                 ret = new NodesFile().nodesJsonString();
+                break;
+            case "/process":
+                ret = new ProcessFile().procJsonString();
                 break;
             default:
                 ret = "=====\nUnknown request!\n====\n" + req;

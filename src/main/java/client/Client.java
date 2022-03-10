@@ -12,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Client {
@@ -24,33 +25,29 @@ public class Client {
         port.set(prt);
         new Server(this).start(isMainNode);
         if (!isMainNode) {
-            askForKnownNodes();
+            composeGetRequest("nodes");
         }
         final Scanner scanner = new Scanner(System.in);
-        while (true) {
+        final AtomicBoolean isExit = new AtomicBoolean();
+        do {
             final String input = scanner.nextLine();
-            if (input.equals("exit")) {
-                System.out.println("====FINISHING CLIENT====");
-                break;
-            } else if (input.equals("nodes")) {
-                askForKnownNodes();
+            switch (input) {
+                case "exit":
+                    System.out.println("====FINISHING CLIENT====");
+                    isExit.set(true);
+                    break;
+                case "nodes":
+                    composeGetRequest("nodes");
+                    break;
+                case "process":
+                    composeGetRequest("process");
+                    break;
+                default:
+                    System.out.println("Unknown command: " + input);
+                    break;
             }
-        }
+        } while (!isExit.get());
         scanner.close();
-    }
-
-    private void askForKnownNodes() {
-        try {
-            final URL url = new URL("http://" + mainNode + "/nodes");
-            final HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
-            con.setRequestProperty("Content-Type", "application/json");
-            continueConnection(con);
-        } catch (ConnectException ce) {
-            System.out.println(ce.getMessage() + ". Enter 'exit' to finish the program.");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public void sendAddressUpdate() {
@@ -65,6 +62,20 @@ public class Client {
             try (OutputStream os = con.getOutputStream()) {
                 os.write(out);
             }
+            continueConnection(con);
+        } catch (ConnectException ce) {
+            System.out.println(ce.getMessage() + ". Enter 'exit' to finish the program.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void composeGetRequest(final String endpoint) {
+        try {
+            final URL url = new URL("http://" + mainNode + "/" + endpoint);
+            final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Content-Type", "application/json");
             continueConnection(con);
         } catch (ConnectException ce) {
             System.out.println(ce.getMessage() + ". Enter 'exit' to finish the program.");
