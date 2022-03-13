@@ -61,7 +61,7 @@ public class JsonFileContent {
 
     private String updatedContent(final String ip, final int port) {
         final Map<?, ?> currentContent = read();
-        ((List<Node>) currentContent.get("nodes")).add(new Node(ip, port));
+        ((List<Node>) currentContent.get("nodes")).add(new Node(ip, port, true));
         final StringBuilder sb = new StringBuilder();
         try {
             sb.append(new ObjectMapper().writeValueAsString(currentContent));
