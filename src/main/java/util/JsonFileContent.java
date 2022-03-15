@@ -2,7 +2,6 @@ package util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import json.Node;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -10,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import json.Node;
 
 public class JsonFileContent {
 

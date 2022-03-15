@@ -1,10 +1,25 @@
 import client.Client;
-
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class Hashcatnick {
-
-    public static void main(String[] args) {
+    private static final String DEFAULT_NODES =
+            "{\n" +
+                    "  \"mainNode\": {\n" +
+                    "    \"ip\": \"127.0.0.1\",\n" +
+                    "    \"port\": 8000\n" +
+                    "  },\n" +
+                    "  \"nodes\": [\n" +
+                    "  ]\n" +
+                    "}";
+    private static final String DEFAULT_PROC = "{\n" +
+            "\n" +
+            "}";
+    
+    public static void main(String[] args) throws IOException {
+        createDefaultFiles();
         System.out.println("===STARTING HYDRATOR===");
         try {
             if (args.length == 0) {
@@ -17,7 +32,26 @@ public class Hashcatnick {
             e.printStackTrace();
         }
     }
-
+    
+    private static void createDefaultFiles() throws IOException {
+        File nodes = new File("nodes.json");
+        if (nodes.createNewFile()) {
+            try (FileOutputStream fos = new FileOutputStream(nodes, false)) {
+                fos.write(DEFAULT_NODES.getBytes(StandardCharsets.UTF_8));
+                fos.flush();
+            }
+        }
+    
+        File process = new File("proc.json");
+        if (nodes.createNewFile()) {
+            try (FileOutputStream fos = new FileOutputStream(process, false)) {
+                fos.write(DEFAULT_PROC.getBytes(StandardCharsets.UTF_8));
+                fos.flush();
+            }
+        }
+        
+    }
+    
     private static void startClientWithArgs(final String[] args) throws IOException {
         boolean isMainNode;
         int port;
@@ -39,5 +73,5 @@ public class Hashcatnick {
         }
         new Client().start(isMainNode, port);
     }
-
+    
 }
