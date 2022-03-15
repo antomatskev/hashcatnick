@@ -18,7 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Client {
     private static final String ADDRESS_FORMAT = "%s:%d";
 
-    private final String mainNode = new NodesFile().mainNodeIp() + ":" + new NodesFile().mainNodePort();
+    private final String mainNodeIp = new NodesFile().mainNodeIp();
+    private final int mainNodePort = new NodesFile().mainNodePort();
     private final AtomicInteger port = new AtomicInteger();
     private Server server;
 
@@ -28,7 +29,7 @@ public class Client {
         server = new Server(this);
         server.start(isMainNode);
         if (!isMainNode) {
-            composeGetRequest(String.format(ADDRESS_FORMAT, server.getIp(), server.getPort()), "nodes");
+            composeGetRequest(String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort), "nodes");
         }
         mainLoop();
     }
@@ -52,13 +53,13 @@ public class Client {
                 server.closeNodeServer();
                 break;
             case "nodes":
-                composeGetRequest(String.format(ADDRESS_FORMAT, server.getIp(), server.getPort()), "nodes");
+                composeGetRequest(String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort), "nodes");
                 break;
             case "process":
-                composeGetRequest(String.format(ADDRESS_FORMAT, server.getIp(), server.getPort()), "process");
+                composeGetRequest(String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort), "process");
                 break;
             case "hashcat":
-                composePostRequest("process", input);
+                composePostRequest(String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort), "process", input);
                 break;
             default:
                 System.out.println("Unknown command: " + input);
@@ -68,7 +69,7 @@ public class Client {
 
     public void sendAddressUpdate() {
         try {
-            final URL url = new URL("http://" + mainNode + "/nodes");
+            final URL url = new URL("http://" + String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort) + "/nodes");
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json");
@@ -100,9 +101,9 @@ public class Client {
         }
     }
 
-    private void composePostRequest(final String endpoint, final String command) {
+    private void composePostRequest(String ip, final String endpoint, final String command) {
         try {
-            final URL url = new URL("http://" + mainNode + "/" + endpoint);
+            final URL url = new URL("http://" + ip + "/" + endpoint);
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json");
