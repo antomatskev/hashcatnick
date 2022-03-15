@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Client {
+    private static final String ADDRESS_FORMAT = "%s:%d";
 
     private final String mainNode = new NodesFile().mainNodeIp() + ":" + new NodesFile().mainNodePort();
     private final AtomicInteger port = new AtomicInteger();
@@ -27,7 +28,7 @@ public class Client {
         server = new Server(this);
         server.start(isMainNode);
         if (!isMainNode) {
-            composeGetRequest("nodes");
+            composeGetRequest(String.format(ADDRESS_FORMAT, server.getIp(), server.getPort()), "nodes");
         }
         mainLoop();
     }
@@ -51,10 +52,10 @@ public class Client {
                 server.closeNodeServer();
                 break;
             case "nodes":
-                composeGetRequest("nodes");
+                composeGetRequest(String.format(ADDRESS_FORMAT, server.getIp(), server.getPort()), "nodes");
                 break;
             case "process":
-                composeGetRequest("process");
+                composeGetRequest(String.format(ADDRESS_FORMAT, server.getIp(), server.getPort()), "process");
                 break;
             case "hashcat":
                 composePostRequest("process", input);
@@ -85,9 +86,9 @@ public class Client {
         }
     }
 
-    private void composeGetRequest(final String endpoint) {
+    private void composeGetRequest(String ip, final String endpoint) {
         try {
-            final URL url = new URL("http://" + mainNode + "/" + endpoint);
+            final URL url = new URL("http://" + ip + "/" + endpoint);
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("Content-Type", "application/json");
@@ -123,8 +124,7 @@ public class Client {
         con.setReadTimeout(5000);
         con.setInstanceFollowRedirects(false);
         int status = con.getResponseCode();
-        final BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream()));
+        final BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
         String inputLine;
         StringBuilder content = new StringBuilder();
         while ((inputLine = in.readLine()) != null) {

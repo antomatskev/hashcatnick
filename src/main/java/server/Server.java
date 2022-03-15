@@ -21,7 +21,15 @@ public class Server {
         ip = getLocalIp();
         port = client.determinePort();
     }
-
+    
+    public int getPort() {
+        return port;
+    }
+    
+    public String getIp() {
+        return ip;
+    }
+    
     public void start(final boolean isMainNode) throws IOException {
         System.out.println("===SERVER STARTED===");
         final NodesFile nodeFile = new NodesFile();
