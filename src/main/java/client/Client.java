@@ -112,7 +112,7 @@ public class Client {
     
     private static String computeResponseNodes(List<String> response) {
         int findIndex = IntStream.range(0, response.size()).
-                filter(row -> response.get(row).isEmpty() || response.get(row).isBlank()).
+                filter(row -> response.get(row).isEmpty()).
                 findFirst().orElse(-1);
         return IntStream.range(findIndex + 1, response.size()).
                 mapToObj(response::get).
