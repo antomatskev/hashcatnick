@@ -40,7 +40,7 @@ public class JsonFileContent {
 		writeContent(content);
 	}
 
-	private void writeContent(String content) {
+	public void writeContent(String content) {
 		try (FileWriter fw = new FileWriter(fileName)) {
 			fw.write(content);
 		} catch (Exception ex) {

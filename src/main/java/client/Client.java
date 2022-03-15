@@ -1,6 +1,12 @@
 package client;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import json.Node;
 import server.Server;
+import util.JsonFileContent;
 import util.NodesFile;
 
 import java.io.BufferedReader;
@@ -93,14 +99,26 @@ public class Client {
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("Content-Type", "application/json");
-            continueConnection(con);
+            List<String> response = continueConnection(con);
+            if (response != null && endpoint.equals("nodes")) {
+                new NodesFile().writeContent(computeResponseNodes(response));
+            }
         } catch (ConnectException ce) {
             System.out.println(ce.getMessage() + ". Enter 'exit' to finish the program.");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
+    
+    private static String computeResponseNodes(List<String> response) {
+        int findIndex = IntStream.range(0, response.size()).
+                filter(row -> response.get(row).isEmpty() || response.get(row).isBlank()).
+                findFirst().orElse(-1);
+        return IntStream.range(findIndex + 1, response.size()).
+                mapToObj(response::get).
+                collect(Collectors.joining("\n"));
+    }
+    
     private void composePostRequest(String ip, final String endpoint, final String command) {
         try {
             final URL url = new URL("http://" + ip + "/" + endpoint);
@@ -120,24 +138,25 @@ public class Client {
         }
     }
 
-    private void continueConnection(HttpURLConnection con) throws IOException {
+    private List<String> continueConnection(HttpURLConnection con) throws IOException {
         con.setConnectTimeout(5000);
         con.setReadTimeout(5000);
         con.setInstanceFollowRedirects(false);
         int status = con.getResponseCode();
         final BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
         String inputLine;
-        StringBuilder content = new StringBuilder();
+        List<String> content = new ArrayList<>();
         while ((inputLine = in.readLine()) != null) {
-            content.append(inputLine);
+            content.add(inputLine);
         }
         if (status > 299) {
-            System.out.println("Something went wrong: " + content);
+            System.out.println("Something went wrong: " + String.join("\n", content));
         } else {
-            System.out.println(content);
+            System.out.println(String.join("\n", content));
         }
         in.close();
         con.disconnect();
+        return status > 299 ? null : content;
     }
 
     public int determinePort() {

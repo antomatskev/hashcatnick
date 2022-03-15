@@ -40,5 +40,8 @@ public class NodesFile {
     public void updateNodeStatus(String ip, int port) {
         new JsonFileContent(NODES_JSON).makeDead(ip, port);
     }
-
+    
+    public void writeContent(String content) {
+        new JsonFileContent(NODES_JSON).writeContent(content);
+    }
 }
