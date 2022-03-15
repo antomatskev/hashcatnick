@@ -19,11 +19,13 @@ public class Client {
 
     private final String mainNode = new NodesFile().mainNodeIp() + ":" + new NodesFile().mainNodePort();
     private final AtomicInteger port = new AtomicInteger();
+    private Server server;
 
     public void start(final boolean isMainNode, final int prt) throws IOException {
         System.out.println("===CLIENT STARTED===");
         port.set(prt);
-        new Server(this).start(isMainNode);
+        server = new Server(this);
+        server.start(isMainNode);
         if (!isMainNode) {
             composeGetRequest("nodes");
         }
@@ -46,6 +48,7 @@ public class Client {
             case "exit":
                 System.out.println("====FINISHING CLIENT====");
                 isExit.set(true);
+                server.closeNodeServer();
                 break;
             case "nodes":
                 composeGetRequest("nodes");

@@ -13,9 +13,13 @@ import java.net.InetSocketAddress;
 public class Server {
 
     private final Client client;
+    private final String ip;
+    private final int port;
 
     public Server(Client client) {
         this.client = client;
+        ip = getLocalIp();
+        port = client.determinePort();
     }
 
     public void start(final boolean isMainNode) throws IOException {
@@ -36,6 +40,11 @@ public class Server {
         System.out.println(startMsg);
         server.start();
     }
+    
+    public void closeNodeServer() {
+        new NodesFile().updateNodeStatus(ip, port);
+        client.sendAddressUpdate();
+    }
 
     private HttpServer startMainNodeServer(final NodesFile mainNode) throws IOException {
         final String mainNodeIp = mainNode.mainNodeIp();
@@ -46,25 +55,24 @@ public class Server {
     }
 
     private HttpServer startNodeServer(final NodesFile nodeFile) throws IOException {
-        String ip;
-        int port;
-        try (final DatagramSocket socket = new DatagramSocket()) {
-            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
-            ip = socket.getLocalAddress().getHostAddress();
-            port = client.determinePort();
-        } catch (Exception e) {
-            e.printStackTrace();
-            ip = "";
-            port = 0;
-        }
         writeAndSendOwnAddress(ip, port);
         return HttpServer.create(
                 new InetSocketAddress(ip, port), 0);
     }
-
+    
     private void writeAndSendOwnAddress(final String ip, final int port) {
         new NodesFile().updateAddress(ip, port);
         client.sendAddressUpdate();
+    }
+    
+    private String getLocalIp() {
+        try (final DatagramSocket socket = new DatagramSocket()) {
+            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+            return socket.getLocalAddress().getHostAddress();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return  "";
+        }
     }
 
 }
