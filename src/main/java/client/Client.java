@@ -1,12 +1,6 @@
 package client;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import json.Node;
 import server.Server;
-import util.JsonFileContent;
 import util.NodesFile;
 
 import java.io.BufferedReader;
@@ -17,9 +11,13 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Client {
     private static final String ADDRESS_FORMAT = "%s:%d";
@@ -51,7 +49,7 @@ public class Client {
 
     private void processInput(Scanner scanner, AtomicBoolean isExit) {
         final String input = scanner.nextLine();
-        final String firstWord = scanner.nextLine().split(" ")[0];
+        final String firstWord = input.split(" ")[0];
         switch (firstWord) {
             case "exit":
                 System.out.println("====FINISHING CLIENT====");

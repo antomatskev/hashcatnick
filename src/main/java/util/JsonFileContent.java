@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import json.Node;
@@ -74,10 +75,11 @@ public class JsonFileContent {
 
 	void makeDead(String ip, int port) {
 		final Map<?, ?> currentContent = read();
-		List<Node> nodes = ((List<Node>) currentContent.get("nodes"));
-		for (Node node : nodes) {
-			if (node.getIp().equals(ip) && node.getPort() == port) {
-				node.setAlive(false);
+		List<LinkedHashMap<?, ?>> nodes = (List<LinkedHashMap<?, ?>>) currentContent.get("nodes");
+		for (LinkedHashMap<?, ?> node : nodes) {
+			if (node.get("ip").equals(ip) && (int) node.get("port") == port) {
+				((LinkedHashMap<String, Boolean>)node).put("alive", Boolean.FALSE);
+				System.out.println(node);
 			}
 		}
 		writeContent(getJsonStringContent(currentContent));
