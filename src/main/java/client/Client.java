@@ -77,7 +77,7 @@ public class Client {
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json");
-            byte[] out = NodesFile.getInstance().nodesJsonString().getBytes(StandardCharsets.UTF_8);
+            byte[] out = NodesFile.nodesJsonString().getBytes(StandardCharsets.UTF_8);
             con.setFixedLengthStreamingMode(out.length);
             con.setDoOutput(true);
             try (OutputStream os = con.getOutputStream()) {
@@ -99,7 +99,7 @@ public class Client {
             con.setRequestProperty("Content-Type", "application/json");
             List<String> response = continueConnection(con);
             if (response != null && endpoint.equals("nodes")) {
-                NodesFile.getInstance().writeContent(computeResponseNodes(response));
+                NodesFile.writeContent(computeResponseNodes(response));
             }
         } catch (ConnectException ce) {
             System.out.println(ce.getMessage() + ". Enter 'exit' to finish the program.");
