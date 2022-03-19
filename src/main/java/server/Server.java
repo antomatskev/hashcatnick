@@ -32,7 +32,7 @@ public class Server {
     
     public void start(final boolean isMainNode) throws IOException {
         System.out.println("===SERVER STARTED===");
-        final NodesFile nodeFile = new NodesFile();
+        final NodesFile nodeFile = NodesFile.getInstance();
         final HttpServer server = isMainNode
                 ? startMainNodeServer(nodeFile)
                 : startNodeServer(nodeFile);
@@ -50,13 +50,13 @@ public class Server {
     }
     
     public void closeNodeServer() {
-        new NodesFile().updateNodeStatus(ip, port);
+        NodesFile.updateNodeStatus(ip, port);
         client.sendAddressUpdate();
     }
 
     private HttpServer startMainNodeServer(final NodesFile mainNode) throws IOException {
         final String mainNodeIp = mainNode.mainNodeIp();
-        final int mainNodePort = new NodesFile().mainNodePort()/*client.determinePort()*/;
+        final int mainNodePort = NodesFile.getInstance().mainNodePort()/*client.determinePort()*/;
         mainNode.updateMainNode(mainNodeIp, mainNodePort);
         return HttpServer.create(
                 new InetSocketAddress(mainNodeIp, mainNodePort), 0);
@@ -69,7 +69,7 @@ public class Server {
     }
     
     private void writeAndSendOwnAddress(final String ip, final int port) {
-        new NodesFile().updateAddress(ip, port);
+        NodesFile.updateAddress(ip, port);
         client.sendAddressUpdate();
     }
     

@@ -61,32 +61,30 @@ public class JsonFileContent {
 	}
 
 	private String updatedContent(final String ip, final int port) {
-		final Map<?, ?> currentContent = read();
-		((List<Node>) currentContent.get("nodes")).add(new Node(ip, port, true));
-		return getJsonStringContent(currentContent);
+		NodesFile nodesFile = NodesFile.getInstance();
+		nodesFile.getNodes().add(new Node(ip, port, true));
+		return getJsonStringContent(nodesFile);
 	}
 
 	private String updatedMainContent(final String ip, final int port) {
-		final Map<?, ?> currentContent = read();
-		((Map<String, String>) currentContent.get("mainNode")).put("ip", ip);
-		((Map<String, Integer>) currentContent.get("mainNode")).put("port", port);
-		return getJsonStringContent(currentContent);
+		NodesFile nodesFile = NodesFile.getInstance();
+		nodesFile.getMainNode().setIp(ip);
+		nodesFile.getMainNode().setPort(port);
+		return getJsonStringContent(nodesFile);
 	}
 
 	void makeDead(String ip, int port) {
-		final Map<?, ?> currentContent = read();
-		List<LinkedHashMap<?, ?>> nodes = (List<LinkedHashMap<?, ?>>) currentContent.get("nodes");
-		for (LinkedHashMap<?, ?> node : nodes) {
-			if (node.get("ip").equals(ip) && (int) node.get("port") == port) {
-				((LinkedHashMap<String, Boolean>)node).put("alive", Boolean.FALSE);
-				System.out.println(node);
+		NodesFile nodesFile = NodesFile.getInstance();
+		for (Node node : nodesFile.getNodes()) {
+			if (node.getIp().equals(ip) && node.getPort() == port) {
+				node.setAlive(false);
 			}
 		}
-		writeContent(getJsonStringContent(currentContent));
+		writeContent(getJsonStringContent(nodesFile));
 
 	}
 
-	private String getJsonStringContent(Map<?, ?> currentContent) {
+	private String getJsonStringContent(Object currentContent) {
 		final StringBuilder sb = new StringBuilder();
 		try {
 			sb.append(new ObjectMapper().writeValueAsString(currentContent));

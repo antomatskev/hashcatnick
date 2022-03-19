@@ -22,8 +22,8 @@ import java.util.stream.IntStream;
 public class Client {
     private static final String ADDRESS_FORMAT = "%s:%d";
 
-    private final String mainNodeIp = new NodesFile().mainNodeIp();
-    private final int mainNodePort = new NodesFile().mainNodePort();
+    private final String mainNodeIp = NodesFile.getInstance().mainNodeIp();
+    private final int mainNodePort = NodesFile.getInstance().mainNodePort();
     private final AtomicInteger port = new AtomicInteger();
     private Server server;
 
@@ -77,7 +77,7 @@ public class Client {
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json");
-            byte[] out = new NodesFile().nodesJsonString().getBytes(StandardCharsets.UTF_8);
+            byte[] out = NodesFile.getInstance().nodesJsonString().getBytes(StandardCharsets.UTF_8);
             con.setFixedLengthStreamingMode(out.length);
             con.setDoOutput(true);
             try (OutputStream os = con.getOutputStream()) {
@@ -99,7 +99,7 @@ public class Client {
             con.setRequestProperty("Content-Type", "application/json");
             List<String> response = continueConnection(con);
             if (response != null && endpoint.equals("nodes")) {
-                new NodesFile().writeContent(computeResponseNodes(response));
+                NodesFile.getInstance().writeContent(computeResponseNodes(response));
             }
         } catch (ConnectException ce) {
             System.out.println(ce.getMessage() + ". Enter 'exit' to finish the program.");
@@ -159,7 +159,7 @@ public class Client {
 
     public int determinePort() {
         if (port.get() <= 0) {
-            port.set(new NodesFile().lastUsedPort() + 1);
+            port.set(NodesFile.getInstance().lastUsedPort() + 1);
         }
         return port.get();
     }

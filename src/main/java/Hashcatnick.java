@@ -21,7 +21,7 @@ public class Hashcatnick {
     
     public static void main(String[] args) throws IOException {
         createDefaultFiles();
-        System.out.println("===STARTING HYDRATOR===");
+        System.out.println("===STARTING HASHCATNIK===");
         try {
             if (args.length == 0) {
                 new Client().start(false, -1);
