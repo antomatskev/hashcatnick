@@ -127,6 +127,7 @@ public class Client {
             try (OutputStream os = con.getOutputStream()) {
                 byte[] input = command.getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
+                os.flush();
             }
             continueConnection(con);
         } catch (ConnectException ce) {

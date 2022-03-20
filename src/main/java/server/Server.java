@@ -56,7 +56,7 @@ public class Server {
 
     private HttpServer startMainNodeServer(final NodesFile mainNode) throws IOException {
         final String mainNodeIp = mainNode.mainNodeIp();
-        final int mainNodePort = NodesFile.getInstance().mainNodePort()/*client.determinePort()*/;
+        final int mainNodePort = NodesFile.getInstance().mainNodePort();
         mainNode.updateMainNode(mainNodeIp, mainNodePort);
         return HttpServer.create(
                 new InetSocketAddress(mainNodeIp, mainNodePort), 0);

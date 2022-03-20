@@ -6,10 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.util.Collections;
 import json.Node;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class NodesFile {
     private static final String NODES_JSON = "nodes.json";

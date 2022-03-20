@@ -17,7 +17,7 @@ public class PostParser implements Parser {
     }
 
     @Override
-    public String composeResponse(final HttpExchange req) throws IOException {
+    public String composeResponse(final HttpExchange req) {
         final String ret;
         switch (this.uri.getPath()) {
             case "/nodes":
