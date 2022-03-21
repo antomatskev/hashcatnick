@@ -1,9 +1,10 @@
 package client;
 
-import server.Server;
-import util.NodesFile;
-
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -18,16 +19,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import json.Node;
+import server.Server;
+import util.NodesFile;
 
 public class Client {
     private static final String ADDRESS_FORMAT = "%s:%d";
-
+    
     private final String mainNodeIp = NodesFile.getInstance().mainNodeIp();
     private final int mainNodePort = NodesFile.getInstance().mainNodePort();
     private final AtomicInteger port = new AtomicInteger();
     private Server server;
-
-    public void start(final boolean isMainNode, final int prt) throws IOException {
+    
+    public void start(final boolean isMainNode,
+                      final int prt) throws IOException {
         System.out.println("===CLIENT STARTED===");
         port.set(prt);
         server = new Server(this);
@@ -37,7 +42,7 @@ public class Client {
         }
         mainLoop();
     }
-
+    
     private void mainLoop() {
         final Scanner scanner = new Scanner(System.in);
         final AtomicBoolean isExit = new AtomicBoolean();
@@ -46,8 +51,9 @@ public class Client {
         } while (!isExit.get());
         scanner.close();
     }
-
-    private void processInput(Scanner scanner, AtomicBoolean isExit) {
+    
+    private void processInput(Scanner scanner,
+                              AtomicBoolean isExit) {
         final String input = scanner.nextLine();
         final String firstWord = input.split(" ")[0];
         switch (firstWord) {
@@ -63,6 +69,8 @@ public class Client {
                 composeGetRequest(String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort), "process");
                 break;
             case "hashcat":
+                String[] parsedString = input.split(" ");
+                sendHashFileOverNetwork(parsedString[2]);
                 composePostRequest(String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort), "process", input);
                 break;
             default:
@@ -70,7 +78,7 @@ public class Client {
                 break;
         }
     }
-
+    
     public void sendAddressUpdate() {
         try {
             final URL url = new URL("http://" + String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort) + "/nodes");
@@ -90,8 +98,33 @@ public class Client {
             e.printStackTrace();
         }
     }
-
-    private void composeGetRequest(String ip, final String endpoint) {
+    
+    private void sendHashFileOverNetwork(String path) {
+        try {
+            for (Node node : NodesFile.getInstance().getNodes()) {
+                final URL url = new URL("http://" + String.format(ADDRESS_FORMAT, node.getIp(), node.getPort()) + "/file");
+                final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("POST");
+                con.setRequestProperty("Content-Type", "text/plain");
+                con.setDoOutput(true);
+                try (BufferedOutputStream bos = new BufferedOutputStream(con.getOutputStream());
+                     BufferedInputStream bis = new BufferedInputStream(new FileInputStream(path))) {
+                    int i;
+                    while ((i = bis.read()) > -1) {
+                        bos.write(i);
+                    }
+                }
+                continueConnection(con);
+            }
+        } catch (ConnectException ce) {
+            System.out.println(ce.getMessage() + ". Enter 'exit' to finish the program.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void composeGetRequest(String ip,
+                                   final String endpoint) {
         try {
             final URL url = new URL("http://" + ip + "/" + endpoint);
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -117,7 +150,9 @@ public class Client {
                 collect(Collectors.joining("\n"));
     }
     
-    private void composePostRequest(String ip, final String endpoint, final String command) {
+    private void composePostRequest(String ip,
+                                    final String endpoint,
+                                    final String command) {
         try {
             final URL url = new URL("http://" + ip + "/" + endpoint);
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -136,7 +171,7 @@ public class Client {
             e.printStackTrace();
         }
     }
-
+    
     private List<String> continueConnection(HttpURLConnection con) throws IOException {
         con.setConnectTimeout(5000);
         con.setReadTimeout(5000);
@@ -157,12 +192,12 @@ public class Client {
         con.disconnect();
         return status > 299 ? null : content;
     }
-
+    
     public int determinePort() {
         if (port.get() <= 0) {
             port.set(NodesFile.getInstance().lastUsedPort() + 1);
         }
         return port.get();
     }
-
+    
 }
