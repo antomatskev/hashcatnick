@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
@@ -26,13 +27,30 @@ public class PostParser implements Parser {
             case "/process":
                 ret = readReqBody(req);
                 break;
+            case "/file":
+                ret = readFile(req);
+                break;
             default:
                 ret = "=====\nUnknown request!\n====\n" + req.getRequestURI().toString();
                 break;
         }
         return ret;
     }
-
+    
+    private String readFile(HttpExchange req) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(req.getRequestBody(), StandardCharsets.UTF_8));
+             PrintWriter writer = new PrintWriter("tmp.txt", StandardCharsets.UTF_8)) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                writer.println(line);
+            }
+            return "Everything is okay";
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "Something went wrong!";
+    }
+    
     private String readReqBody(final HttpExchange exchange) {
         try (InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
              BufferedReader br = new BufferedReader(isr)) {
