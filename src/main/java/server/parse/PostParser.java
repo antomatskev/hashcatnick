@@ -3,6 +3,7 @@ package server.parse;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.BufferedReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -41,11 +42,14 @@ public class PostParser implements Parser {
     
     private String readFile(HttpExchange req) {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(req.getRequestBody(), StandardCharsets.UTF_8));
-             PrintWriter writer = new PrintWriter("tmp.txt", StandardCharsets.UTF_8)) {
+             FileWriter writer = new FileWriter("currentHash")) {
+            StringBuilder buffer = new StringBuilder();
             String line;
             while ((line = br.readLine()) != null) {
-                writer.println(line);
+                buffer.append(line).append("\n");
             }
+            writer.write(buffer.toString());
+            writer.flush();
             return "Everything is okay";
         } catch (IOException e) {
             e.printStackTrace();
