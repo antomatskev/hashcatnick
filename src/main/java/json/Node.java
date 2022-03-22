@@ -7,8 +7,7 @@ public class Node {
 	private String ip;
 	private int port;
 	private boolean isAlive;
-
-
+	
 	@JsonCreator
 	public Node(@JsonProperty("ip") String ip,
 				@JsonProperty("port") int port,
@@ -33,12 +32,13 @@ public class Node {
 	public void setPort(int port) {
 		this.port = port;
 	}
-
+	
+	@JsonProperty(value="isAlive")
 	public boolean isAlive() {
 		return isAlive;
 	}
 
-	public void setAlive(boolean alive) {
-		isAlive = alive;
+	public void setAlive(boolean isAlive) {
+		this.isAlive = isAlive;
 	}
 }

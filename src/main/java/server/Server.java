@@ -11,7 +11,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 public class Server {
-
     private final Client client;
     private final String ip;
     private final int port;
@@ -63,7 +62,7 @@ public class Server {
     }
 
     private HttpServer startNodeServer(final NodesFile nodeFile) throws IOException {
-        writeAndSendOwnAddress(ip, port);
+        //writeAndSendOwnAddress(ip, port);
         return HttpServer.create(
                 new InetSocketAddress(ip, port), 0);
     }

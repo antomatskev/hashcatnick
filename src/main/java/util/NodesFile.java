@@ -2,6 +2,7 @@ package util;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.util.Collections;
@@ -39,7 +40,12 @@ public class NodesFile {
     }
 
     public static String nodesJsonString() {
-        return new JsonFileContent(NODES_JSON).readStringified();
+        try {
+            return new ObjectMapper().writeValueAsString(getInstance());
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return "EMPTY";
     }
     
     public int lastUsedPort() {
@@ -68,5 +74,15 @@ public class NodesFile {
     
     public static void writeContent(String content) {
         new JsonFileContent(NODES_JSON).writeContent(content);
+    }
+    
+    public static void clearNodesList() {
+        NodesFile file = NodesFile.getInstance();
+        file.getNodes().clear();
+        try {
+            new JsonFileContent(NODES_JSON).writeContent(new ObjectMapper().writeValueAsString(file));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
 }

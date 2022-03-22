@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import util.NodesFile;
 
 public class PostParser implements Parser {
 
@@ -22,10 +23,11 @@ public class PostParser implements Parser {
         final String ret;
         switch (this.uri.getPath()) {
             case "/nodes":
+                NodesFile.writeContent(readReqBody(req));
                 ret = req.getRequestURI().toString();
                 break;
             case "/process":
-                ret = readReqBody(req);
+                ret = "Received command: " + readReqBody(req);
                 break;
             case "/file":
                 ret = readFile(req);
@@ -55,7 +57,7 @@ public class PostParser implements Parser {
         try (InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
              BufferedReader br = new BufferedReader(isr)) {
             int b;
-            StringBuilder buf = new StringBuilder("Received command: ");
+            StringBuilder buf = new StringBuilder();
             while ((b = br.read()) != -1) {
                 buf.append((char) b);
             }

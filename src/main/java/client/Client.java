@@ -1,9 +1,9 @@
 package client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,21 +39,24 @@ public class Client {
         server.start(isMainNode);
         if (!isMainNode) {
             composeGetRequest(String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort), "nodes");
+            NodesFile.updateAddress(server.getIp(), server.getPort());
+            sendAddressUpdate();
         }
-        mainLoop();
+        mainLoop(isMainNode);
     }
     
-    private void mainLoop() {
+    private void mainLoop(boolean isMain) {
         final Scanner scanner = new Scanner(System.in);
         final AtomicBoolean isExit = new AtomicBoolean();
         do {
-            processInput(scanner, isExit);
+            processInput(scanner, isExit, isMain);
         } while (!isExit.get());
         scanner.close();
     }
     
     private void processInput(Scanner scanner,
-                              AtomicBoolean isExit) {
+                              AtomicBoolean isExit,
+                              boolean isMain) {
         final String input = scanner.nextLine();
         final String firstWord = input.split(" ")[0];
         switch (firstWord) {
@@ -73,6 +76,13 @@ public class Client {
                 sendHashFileOverNetwork(parsedString[2]);
                 composePostRequest(String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort), "process", input);
                 break;
+            case "clearNodes":
+                if (isMain)
+                    NodesFile.clearNodesList();
+                else {
+                    System.out.println("YOU ARE NOT ALLOWED TO DO IT");
+                }
+                break;
             default:
                 System.out.println("Unknown command: " + input);
                 break;
@@ -90,6 +100,7 @@ public class Client {
             con.setDoOutput(true);
             try (OutputStream os = con.getOutputStream()) {
                 os.write(out);
+                os.flush();
             }
             continueConnection(con);
         } catch (ConnectException ce) {
@@ -102,7 +113,8 @@ public class Client {
     private void sendHashFileOverNetwork(String path) {
         try {
             for (Node node : NodesFile.getInstance().getNodes()) {
-                final URL url = new URL("http://" + String.format(ADDRESS_FORMAT, node.getIp(), node.getPort()) + "/file");
+                final URL url = new URL("http://" + String.format(ADDRESS_FORMAT, node.getIp(), node.getPort()) +
+                        "/file");
                 final HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("POST");
                 con.setRequestProperty("Content-Type", "text/plain");
@@ -113,6 +125,7 @@ public class Client {
                     while ((i = bis.read()) > -1) {
                         bos.write(i);
                     }
+                    bos.flush();
                 }
                 continueConnection(con);
             }

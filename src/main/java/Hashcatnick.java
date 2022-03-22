@@ -10,7 +10,8 @@ public class Hashcatnick {
             "{\n" +
                     "  \"mainNode\": {\n" +
                     "    \"ip\": \"127.0.0.1\",\n" +
-                    "    \"port\": 8000\n" +
+                    "    \"port\": 8000,\n" +
+                    "    \"isAlive\": true\n" +
                     "  },\n" +
                     "  \"nodes\": [\n" +
                     "  ]\n" +
