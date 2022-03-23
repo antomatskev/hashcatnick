@@ -1,12 +1,17 @@
 package server.parse;
 
+import client.Client;
 import com.sun.net.httpserver.HttpExchange;
 
+import cracker.PasswordCracker;
 import java.io.BufferedReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import util.NodesFile;
 
 public class PostParser implements Parser {
 
@@ -17,14 +22,18 @@ public class PostParser implements Parser {
     }
 
     @Override
-    public String composeResponse(final HttpExchange req) throws IOException {
+    public String composeResponse(final HttpExchange req) {
         final String ret;
         switch (this.uri.getPath()) {
             case "/nodes":
+                NodesFile.writeContent(readReqBody(req));
                 ret = req.getRequestURI().toString();
                 break;
             case "/process":
-                ret = readReqBody(req);
+                ret = "Received command: " + readReqBody(req);
+                break;
+            case "/file":
+                ret = readFile(req);
                 break;
             default:
                 ret = "=====\nUnknown request!\n====\n" + req.getRequestURI().toString();
@@ -32,12 +41,34 @@ public class PostParser implements Parser {
         }
         return ret;
     }
-
+    
+    private String readFile(HttpExchange req) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(req.getRequestBody(), StandardCharsets.UTF_8));
+             FileWriter writer = new FileWriter("currentHash")) {
+            StringBuilder buffer = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                buffer.append(line).append("\n");
+            }
+            writer.write(buffer.toString());
+            writer.flush();
+            new Thread(this::crackFile).start();
+            return "Everything is okay";
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "Something went wrong!";
+    }
+    
+    private void crackFile() {
+        Client.crackFile();
+    }
+    
     private String readReqBody(final HttpExchange exchange) {
         try (InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
              BufferedReader br = new BufferedReader(isr)) {
             int b;
-            StringBuilder buf = new StringBuilder("Received command: ");
+            StringBuilder buf = new StringBuilder();
             while ((b = br.read()) != -1) {
                 buf.append((char) b);
             }

@@ -19,7 +19,7 @@ public class GetParser implements Parser {
         final String ret;
         switch (this.uri.getPath()) {
             case "/nodes":
-                ret = new NodesFile().nodesJsonString();
+                ret = NodesFile.nodesJsonString();
                 break;
             case "/process":
                 ret = new ProcessFile().procJsonString();

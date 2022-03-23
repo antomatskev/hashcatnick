@@ -1,9 +1,12 @@
 package client;
 
-import server.Server;
-import util.NodesFile;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cracker.PasswordCracker;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -18,36 +21,44 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import json.Node;
+import server.Server;
+import util.NodesFile;
 
 public class Client {
     private static final String ADDRESS_FORMAT = "%s:%d";
-
-    private final String mainNodeIp = new NodesFile().mainNodeIp();
-    private final int mainNodePort = new NodesFile().mainNodePort();
+    
+    private final String mainNodeIp = NodesFile.getInstance().mainNodeIp();
+    private final int mainNodePort = NodesFile.getInstance().mainNodePort();
     private final AtomicInteger port = new AtomicInteger();
     private Server server;
-
-    public void start(final boolean isMainNode, final int prt) throws IOException {
+    
+    public void start(final boolean isMainNode,
+                      final int prt) throws IOException {
         System.out.println("===CLIENT STARTED===");
         port.set(prt);
         server = new Server(this);
         server.start(isMainNode);
         if (!isMainNode) {
             composeGetRequest(String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort), "nodes");
+            NodesFile.updateAddress(server.getIp(), server.getPort());
+            sendAddressUpdate();
         }
-        mainLoop();
+        mainLoop(isMainNode);
     }
-
-    private void mainLoop() {
+    
+    private void mainLoop(boolean isMain) {
         final Scanner scanner = new Scanner(System.in);
         final AtomicBoolean isExit = new AtomicBoolean();
         do {
-            processInput(scanner, isExit);
+            processInput(scanner, isExit, isMain);
         } while (!isExit.get());
         scanner.close();
     }
-
-    private void processInput(Scanner scanner, AtomicBoolean isExit) {
+    
+    private void processInput(Scanner scanner,
+                              AtomicBoolean isExit,
+                              boolean isMain) {
         final String input = scanner.nextLine();
         final String firstWord = input.split(" ")[0];
         switch (firstWord) {
@@ -63,25 +74,64 @@ public class Client {
                 composeGetRequest(String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort), "process");
                 break;
             case "hashcat":
+                String[] parsedString = input.split(" ");
+                sendHashFileOverNetwork(parsedString[2]);
                 composePostRequest(String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort), "process", input);
+                break;
+            case "clearNodes":
+                if (isMain)
+                    NodesFile.clearNodesList();
+                else {
+                    System.out.println("YOU ARE NOT ALLOWED TO DO IT");
+                }
                 break;
             default:
                 System.out.println("Unknown command: " + input);
                 break;
         }
     }
-
+    
+    public static void crackFile() {
+        List<String> hashes = readFile("currentHash");
+        System.out.println("Start cracking");
+        try {
+            PasswordCracker passwordCracker = new PasswordCracker();
+            for (String hash : hashes) {
+                System.out.println(passwordCracker.crack(hash));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private static List<String> readFile(String path) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(path)))) {
+            List<String> lines = new ArrayList<>();
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+            return lines;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
     public void sendAddressUpdate() {
         try {
             final URL url = new URL("http://" + String.format(ADDRESS_FORMAT, mainNodeIp, mainNodePort) + "/nodes");
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json");
-            byte[] out = new NodesFile().nodesJsonString().getBytes(StandardCharsets.UTF_8);
+            byte[] out = NodesFile.nodesJsonString().getBytes(StandardCharsets.UTF_8);
             con.setFixedLengthStreamingMode(out.length);
             con.setDoOutput(true);
             try (OutputStream os = con.getOutputStream()) {
                 os.write(out);
+                os.flush();
             }
             continueConnection(con);
         } catch (ConnectException ce) {
@@ -90,8 +140,35 @@ public class Client {
             e.printStackTrace();
         }
     }
-
-    private void composeGetRequest(String ip, final String endpoint) {
+    
+    private void sendHashFileOverNetwork(String path) {
+        try {
+            for (Node node : NodesFile.getInstance().getNodes()) {
+                final URL url = new URL("http://" + String.format(ADDRESS_FORMAT, node.getIp(), node.getPort()) +
+                        "/file");
+                final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("POST");
+                con.setRequestProperty("Content-Type", "text/plain");
+                con.setDoOutput(true);
+                try (BufferedOutputStream bos = new BufferedOutputStream(con.getOutputStream());
+                     BufferedInputStream bis = new BufferedInputStream(new FileInputStream(path))) {
+                    int i;
+                    while ((i = bis.read()) > -1) {
+                        bos.write(i);
+                    }
+                    bos.flush();
+                }
+                continueConnection(con);
+            }
+        } catch (ConnectException ce) {
+            System.out.println(ce.getMessage() + ". Enter 'exit' to finish the program.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void composeGetRequest(String ip,
+                                   final String endpoint) {
         try {
             final URL url = new URL("http://" + ip + "/" + endpoint);
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -99,7 +176,7 @@ public class Client {
             con.setRequestProperty("Content-Type", "application/json");
             List<String> response = continueConnection(con);
             if (response != null && endpoint.equals("nodes")) {
-                new NodesFile().writeContent(computeResponseNodes(response));
+                NodesFile.writeContent(computeResponseNodes(response));
             }
         } catch (ConnectException ce) {
             System.out.println(ce.getMessage() + ". Enter 'exit' to finish the program.");
@@ -117,7 +194,9 @@ public class Client {
                 collect(Collectors.joining("\n"));
     }
     
-    private void composePostRequest(String ip, final String endpoint, final String command) {
+    private void composePostRequest(String ip,
+                                    final String endpoint,
+                                    final String command) {
         try {
             final URL url = new URL("http://" + ip + "/" + endpoint);
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -127,6 +206,7 @@ public class Client {
             try (OutputStream os = con.getOutputStream()) {
                 byte[] input = command.getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
+                os.flush();
             }
             continueConnection(con);
         } catch (ConnectException ce) {
@@ -135,7 +215,7 @@ public class Client {
             e.printStackTrace();
         }
     }
-
+    
     private List<String> continueConnection(HttpURLConnection con) throws IOException {
         con.setConnectTimeout(5000);
         con.setReadTimeout(5000);
@@ -156,12 +236,12 @@ public class Client {
         con.disconnect();
         return status > 299 ? null : content;
     }
-
+    
     public int determinePort() {
         if (port.get() <= 0) {
-            port.set(new NodesFile().lastUsedPort() + 1);
+            port.set(NodesFile.getInstance().lastUsedPort() + 1);
         }
         return port.get();
     }
-
+    
 }

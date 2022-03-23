@@ -21,6 +21,7 @@ public class Route {
         exchange.sendResponseHeaders(200, response.length());
         try (OutputStream responseStream = exchange.getResponseBody()) {
             responseStream.write(response.getBytes(Charset.defaultCharset()));
+            responseStream.flush();
         }
     }
 }

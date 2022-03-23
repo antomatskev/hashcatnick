@@ -10,7 +10,8 @@ public class Hashcatnick {
             "{\n" +
                     "  \"mainNode\": {\n" +
                     "    \"ip\": \"127.0.0.1\",\n" +
-                    "    \"port\": 8000\n" +
+                    "    \"port\": 8000,\n" +
+                    "    \"isAlive\": true\n" +
                     "  },\n" +
                     "  \"nodes\": [\n" +
                     "  ]\n" +
@@ -21,7 +22,7 @@ public class Hashcatnick {
     
     public static void main(String[] args) throws IOException {
         createDefaultFiles();
-        System.out.println("===STARTING HYDRATOR===");
+        System.out.println("===STARTING HASHCATNIK===");
         try {
             if (args.length == 0) {
                 new Client().start(false, -1);
