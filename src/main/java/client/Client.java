@@ -1,10 +1,12 @@
 package client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cracker.PasswordCracker;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -87,6 +89,35 @@ public class Client {
                 System.out.println("Unknown command: " + input);
                 break;
         }
+    }
+    
+    public static void crackFile() {
+        List<String> hashes = readFile("currentHash");
+        System.out.println("Start cracking");
+        try {
+            PasswordCracker passwordCracker = new PasswordCracker();
+            for (String hash : hashes) {
+                System.out.println(passwordCracker.crack(hash));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private static List<String> readFile(String path) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(path)))) {
+            List<String> lines = new ArrayList<>();
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+            return lines;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
     
     public void sendAddressUpdate() {

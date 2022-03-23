@@ -1,7 +1,9 @@
 package server.parse;
 
+import client.Client;
 import com.sun.net.httpserver.HttpExchange;
 
+import cracker.PasswordCracker;
 import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -50,11 +52,16 @@ public class PostParser implements Parser {
             }
             writer.write(buffer.toString());
             writer.flush();
+            new Thread(this::crackFile).start();
             return "Everything is okay";
         } catch (IOException e) {
             e.printStackTrace();
         }
         return "Something went wrong!";
+    }
+    
+    private void crackFile() {
+        Client.crackFile();
     }
     
     private String readReqBody(final HttpExchange exchange) {
